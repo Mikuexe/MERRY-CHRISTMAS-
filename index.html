@@ -102,7 +102,9 @@ button {
 </head>
 
 <body>
-
+  <audio id="bgMusic" loop>
+  <source src="audio/music.mp3" type="audio/mpeg">
+</audio>
 <div class="card" id="card">
   <h1>MERRY CHRISTMAS 🎁🌟🎄</h1>
   <p>Chelsea, may I borrow a bit of your time to give you my present?</p>
@@ -176,8 +178,11 @@ const storySteps = [
   { choice:true }
 ];
 
-function yesClicked(){
-  showNext();
+const bgMusic = document.getElementById("bgMusic");
+
+function yesClicked() {
+  bgMusic.play(); // starts music on first user click
+  showNextStep();
 }
 
 function showNext(){
@@ -262,6 +267,7 @@ attachNoBehavior();
 
 </body>
 </html>
+
 
 
 
