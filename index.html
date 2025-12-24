@@ -203,7 +203,7 @@ function showNext(){
   else if(cur.choice){
     noClicks = 0;
     card.innerHTML = `
-      <p>One last question…</p>
+      <p>So, can we try again??</p>
       <div class="buttons">
         <button class="yes" onclick="showYesFinal()">Yes</button>
         <button class="no" id="noBtn">No</button>
@@ -254,11 +254,11 @@ giftBtn.addEventListener("click",()=>{
 
 /* ---------- FINALS ---------- */
 function showYesFinal(){
-  card.innerHTML = `<h1>💖</h1><p>You chose yes. And that makes me really happy.</p>`;
+  card.innerHTML = `<h1>💖</h1><p>YIPPIEEEEE I LOVE YOU BABYYYY</p>`;
 }
 
 function showNoFinal(){
-  card.innerHTML = `<h1>🥲</h1><p>You said no… but I still wanted you to see this.</p>`;
+  card.innerHTML = `<h1>🥲</h1><p>Well it's fine, I wont give up anywaysss</p>`;
 }
 
 /* initial stubborn no */
@@ -267,6 +267,7 @@ attachNoBehavior();
 
 </body>
 </html>
+
 
 
 
