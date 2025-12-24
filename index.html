@@ -16,7 +16,6 @@ body {
   align-items: center;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overflow-x: hidden;
-  overflow-y: auto;
 }
 
 .card {
@@ -28,14 +27,12 @@ body {
   max-width: 360px;
   box-shadow: 0 12px 28px rgba(0,0,0,0.12);
   margin-top: 50px;
-  margin-bottom: 10px;
 }
 
 h1 {
   color: #ff4d6d;
   font-size: 28px;
   margin-bottom: 12px;
-  font-weight: 600;
 }
 
 p {
@@ -61,16 +58,15 @@ button {
   width: 45%;
 }
 
-.yes { background-color: #ff4d6d; color: white; left:0; bottom:0; }
-.no { background-color: #e6e6e6; color:#444; right:0; bottom:0; }
-.next { width:100%; position:static; margin-top:10px; bottom:auto; }
+.yes { background:#ff4d6d; color:white; left:0; }
+.no  { background:#e6e6e6; color:#444; right:0; }
+.next { position:static; width:100%; margin-top:10px; }
 
 #giftBtnContainer {
   position: fixed;
   bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10;
   display: none;
 }
 
@@ -88,7 +84,6 @@ button {
   object-fit: cover;
   pointer-events: none;
   transition: all 1s ease;
-  z-index: 9;
 }
 
 #collectedGifts {
@@ -96,214 +91,169 @@ button {
   top: 20px;
   left: 20px;
   display: flex;
-  flex-direction: row;
   gap: 10px;
-  z-index: 8;
 }
 </style>
 </head>
 
 <body>
 
-<!-- Intro card -->
 <div class="card" id="card">
   <h1>MERRY CHRISTMAS 🎁🌟🎄</h1>
-  <p>
-    Chelsea, may I borrow a bit of your time to give you my present?
-    <br><br>🎁
-  </p>
-
-  <div class="buttons" id="buttonContainer">
+  <p>Chelsea, may I borrow a bit of your time to give you my present?</p>
+  <div class="buttons">
     <button class="yes" onclick="yesClicked()">Yes</button>
     <button class="no" id="noBtn">No</button>
   </div>
 </div>
 
-<!-- Gift button -->
 <div id="giftBtnContainer">
   <button id="giftBtn">🎁</button>
 </div>
 
-<!-- Collected gifts container -->
 <div id="collectedGifts"></div>
 
 <script>
-const noBtn = document.getElementById("noBtn");
 const card = document.getElementById("card");
-const giftBtnContainer = document.getElementById("giftBtnContainer");
 const giftBtn = document.getElementById("giftBtn");
+const giftBtnContainer = document.getElementById("giftBtnContainer");
 const collectedGifts = document.getElementById("collectedGifts");
 
 let step = 0;
 let giftClicked = false;
 let noClicks = 0;
 
-// --------------------
-// STUBBORN NO MOVEMENT
-// --------------------
-function moveNo() {
-  const cardRect = card.getBoundingClientRect();
-  const maxX = cardRect.width - noBtn.offsetWidth;
-  const maxY = cardRect.height - noBtn.offsetHeight;
-  noBtn.style.left = Math.random() * maxX + "px";
-  noBtn.style.top = Math.random() * maxY + "px";
+/* ---------- STUBBORN NO ---------- */
+function moveNo(e){
+  e?.preventDefault();
+  const noBtn = document.getElementById("noBtn");
+  if(!noBtn) return;
+
+  const rect = card.getBoundingClientRect();
+  noBtn.style.position = "absolute";
+  noBtn.style.left = Math.random() * (rect.width - noBtn.offsetWidth) + "px";
+  noBtn.style.top  = Math.random() * (rect.height - noBtn.offsetHeight) + "px";
 }
-noBtn.addEventListener("mouseenter", moveNo);
-noBtn.addEventListener("touchstart", moveNo, { passive:false });
 
-// --------------------
-// STORY STEPS
-// --------------------
+function attachNoBehavior(){
+  const noBtn = document.getElementById("noBtn");
+  if(!noBtn) return;
+
+  noBtn.addEventListener("mouseenter", moveNo);
+  noBtn.addEventListener("touchstart", moveNo, { passive:false });
+
+  noBtn.addEventListener("click", () => {
+    noClicks++;
+
+    const texts = [
+      "are you sure?",
+      "are you really sure?",
+      "are you really really sure?",
+      "ARE YOU REALLY REALLY SURE?",
+      "last chance…"
+    ];
+
+    if(noClicks <= 5){
+      card.querySelector("p").innerText = texts[noClicks-1];
+    } else {
+      showNoFinal();
+    }
+  });
+}
+
+/* ---------- STORY ---------- */
 const storySteps = [
-  { textBeforeGift: 'CLICK THE "🎁"', textAfterGift: "HERE'S MY FIRST GIFT", showGift: true, giftImage: "images/gift1.png" },
-  { textBeforeGift: 'CLICK THE "🎁"', textAfterGift: "HERE'S MY SECOND GIFT", showGift: true, giftImage: "images/gift22.png" },
-  { textBeforeGift: 'CLICK THE "🎁"', textAfterGift: "HERE'S MY THIRD GIFT", showGift: true, giftImage: "images/gift3.png" },
-  { textBeforeGift: 'CLICK THE "🎁"', textAfterGift: "HERE'S MY FOURTH GIFT", showGift: true, giftImage: "images/gift4.png" },
-
-  // page AFTER gifts
-  { textBeforeGift: "One more thing before we end…", showGift: false },
-
-  // YES / NO RETURNS HERE
-  { textBeforeGift: "So… do you still want to continue?", showGift: false, showChoice: true }
+  { gift:true, img:"images/gift1.png", after:"Here's my first gift 💐" },
+  { gift:true, img:"images/gift22.png", after:"Fries!! Because I love you more 🍟💖" },
+  { gift:true, img:"images/gift3.png", after:"Third gift 💝" },
+  { gift:true, img:"images/gift4.png", after:"Fourth gift 🎁" },
+  { text:"This page stays for now." },
+  { choice:true }
 ];
 
-// --------------------
-// YES CLICK
-// --------------------
-function yesClicked() {
-  if (step >= storySteps.length) {
-    showYesFinal();
-    return;
-  }
-  showNextStep();
+function yesClicked(){
+  showNext();
 }
 
-// --------------------
-// NO CLICK LOGIC
-// --------------------
-noBtn.onclick = () => {
-  noClicks++;
-  const texts = [
-    "are you sure?",
-    "are you really sure?",
-    "are you really really sure?",
-    "are you REALLY sure?",
-    "last chance…"
-  ];
-
-  if (noClicks <= 5) {
-    card.querySelector("p").innerText = texts[noClicks - 1];
-  } else {
-    showNoFinal();
-  }
-};
-
-// --------------------
-// SHOW STEPS
-// --------------------
-function showNextStep() {
-  const current = storySteps[step];
+function showNext(){
   giftClicked = false;
+  giftBtnContainer.style.display = "none";
 
-  card.innerHTML = `<p>${current.textBeforeGift}</p>`;
+  if(step >= storySteps.length) return;
 
-  if (current.showGift) {
-    giftBtnContainer.style.display = "block";
-  } else {
-    giftBtnContainer.style.display = "none";
-
-    if (current.showChoice) {
-      card.innerHTML += `
-        <div class="buttons">
-          <button class="yes" onclick="yesClicked()">Yes</button>
-          <button class="no" id="noBtn">No</button>
-        </div>`;
-      setTimeout(() => {
-        document.getElementById("noBtn").addEventListener("mouseenter", moveNo);
-      }, 50);
-    } else {
-      card.innerHTML += `<button class="next" onclick="nextStep()">Next</button>`;
-    }
-  }
-
+  const cur = storySteps[step];
   step++;
+
+  if(cur.gift){
+    card.innerHTML = `<p>CLICK THE "🎁"</p>`;
+    giftBtnContainer.style.display = "block";
+    giftBtn.dataset.img = cur.img;
+    giftBtn.dataset.after = cur.after;
+  }
+  else if(cur.choice){
+    noClicks = 0;
+    card.innerHTML = `
+      <p>One last question…</p>
+      <div class="buttons">
+        <button class="yes" onclick="showYesFinal()">Yes</button>
+        <button class="no" id="noBtn">No</button>
+      </div>`;
+    setTimeout(attachNoBehavior,50);
+  }
+  else{
+    card.innerHTML = `<p>${cur.text}</p><button class="next" onclick="showNext()">Next</button>`;
+  }
 }
 
-function nextStep() { showNextStep(); }
-
-// --------------------
-// GIFT LOGIC
-// --------------------
-giftBtn.addEventListener("click", () => {
-  if (giftClicked) return;
+/* ---------- GIFT ANIMATION ---------- */
+giftBtn.addEventListener("click",()=>{
+  if(giftClicked) return;
   giftClicked = true;
 
-  const current = storySteps[step - 1];
   const img = document.createElement("img");
-  img.src = current.giftImage;
+  img.src = giftBtn.dataset.img;
   img.className = "collectedGift";
 
-  const angle = Math.random() * 30 - 15;
-  img.style.transform = `rotate(${angle}deg)`;
-
-  const btnRect = giftBtn.getBoundingClientRect();
-  img.style.left = btnRect.left + "px";
-  img.style.top = btnRect.top + "px";
+  const rect = giftBtn.getBoundingClientRect();
+  img.style.left = rect.left+"px";
+  img.style.top  = rect.top+"px";
 
   document.body.appendChild(img);
 
-  // zoom to center (2x)
-  setTimeout(() => {
-    img.style.width = "240px";
-    img.style.height = "240px";
-    img.style.left = window.innerWidth / 2 - 120 + "px";
-    img.style.top = window.innerHeight / 2 - 120 + "px";
-  }, 50);
+  setTimeout(()=>{
+    img.style.width="240px";
+    img.style.height="240px";
+    img.style.left=innerWidth/2-120+"px";
+    img.style.top=innerHeight/2-120+"px";
+  },50);
 
-  // shrink & stack
-  setTimeout(() => {
-    img.style.width = "70px";
-    img.style.height = "70px";
-    img.style.left = 20 + collectedGifts.children.length * 80 + "px";
-    img.style.top = "20px";
-  }, 3000);
+  setTimeout(()=>{
+    img.style.width="70px";
+    img.style.height="70px";
+    img.style.left=20+collectedGifts.children.length*80+"px";
+    img.style.top="20px";
+  },3000);
 
-  setTimeout(() => {
+  setTimeout(()=>{
     collectedGifts.appendChild(img);
-    img.style.position = "static";
-
-    card.innerHTML = `<p>${current.textAfterGift}</p>
-                      <button class="next" onclick="nextStep()">Next</button>`;
-  }, 4000);
+    img.style.position="static";
+    card.innerHTML = `<p>${giftBtn.dataset.after}</p>
+                      <button class="next" onclick="showNext()">Next</button>`;
+  },4000);
 });
 
-// --------------------
-// FINAL SCREENS
-// --------------------
-function showYesFinal() {
-  giftBtnContainer.style.display = "none";
-  card.innerHTML = `
-    <h1>💖</h1>
-    <p>You chose yes… and that makes me really happy.</p>`;
+/* ---------- FINALS ---------- */
+function showYesFinal(){
+  card.innerHTML = `<h1>💖</h1><p>You chose yes. And that makes me really happy.</p>`;
 }
 
-function showNoFinal() {
-  giftBtnContainer.style.display = "none";
-  card.innerHTML = `
-    <h1>🥺</h1>
-    <p>You pressed no every time… but I still meant everything I said.</p>`;
+function showNoFinal(){
+  card.innerHTML = `<h1>🥲</h1><p>You said no… but I still wanted you to see this.</p>`;
 }
+
+/* initial stubborn no */
+attachNoBehavior();
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
